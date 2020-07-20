@@ -18,11 +18,16 @@ public class OrderService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
 
-    @Autowired
+
     private AccountFeignClient accountFeignClient;
 
-    @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public OrderService(AccountFeignClient accountFeignClient, JdbcTemplate jdbcTemplate) {
+        this.accountFeignClient = accountFeignClient;
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     public void create(String userId, String commodityCode, Integer count) {
         String xid = TxcContext.getCurrentXid();
@@ -32,7 +37,7 @@ public class OrderService {
         int orderMoney = count * 100;
         // 生成订单
         jdbcTemplate.update("insert order_tbl(user_id,commodity_code,count,money) values(?,?,?,?)",
-            new Object[] {userId, commodityCode, count, orderMoney});
+                new Object[]{userId, commodityCode, count, orderMoney});
         // 调用账户余额扣减
         accountFeignClient.reduce(userId, orderMoney);
 
